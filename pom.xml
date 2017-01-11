@@ -53,7 +53,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
         <dependency>
             <groupId>com.jenkov</groupId>
             <artifactId>iap-tools</artifactId>
-            <version>0.6.0</version>
+            <version>0.8.6</version>
         </dependency>
 
         <!-- Jackson dependencies - for comparison against Jackson -->
@@ -101,6 +101,19 @@ THE POSSIBILITY OF SUCH DAMAGE.
           <version>2.4.0</version>
         </dependency>
         <!-- CBOR dependencies end -->
+
+        <!-- Jsoniter dependencies -->
+        <dependency>
+          <groupId>com.jsoniter</groupId>
+          <artifactId>jsoniter</artifactId>
+          <version>0.9.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.21.0-GA</version>
+        </dependency>
+        <!-- Jsoniter dependencies end -->
 
 
         <!-- JMH dependencies -->

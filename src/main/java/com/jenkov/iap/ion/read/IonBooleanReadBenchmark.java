@@ -4,9 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.jenkov.iap.ion.pojos.*;
 import com.jenkov.iap.ion.write.IonObjectWriter;
+import com.jsoniter.DecodingMode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.TypeLiteral;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.runner.RunnerException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +22,9 @@ import java.io.IOException;
  */
 public class IonBooleanReadBenchmark {
 
+    static {
+        JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+    }
 
 
     @State(Scope.Thread)
@@ -86,6 +95,8 @@ public class IonBooleanReadBenchmark {
         ObjectMapper objectMapper          = new ObjectMapper();
         ObjectMapper objectMapperMsgPack   = new ObjectMapper(new MessagePackFactory());
         ObjectMapper objectMapperCbor      = new ObjectMapper(new CBORFactory());
+        JsonIterator jsonIterator          = new JsonIterator();
+        TypeLiteral<PojoArray10Boolean> pojoArray10BooleanTypeLiteral = TypeLiteral.create(PojoArray10Boolean.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(10 * 1024);
 
@@ -155,6 +166,11 @@ public class IonBooleanReadBenchmark {
                 out.reset(); objectMapperCbor.writeValue(out, pojoArray100_10);   bytesCbor100_10  = out.toByteArray();
                 out.reset(); objectMapperCbor.writeValue(out, pojoArray1000_10);  bytesCbor1000_10 = out.toByteArray();
 
+                out.reset(); JsonStream.serialize(pojo10, out);            bytesCbor1_10    = out.toByteArray();
+                out.reset(); JsonStream.serialize(pojoArray10_10, out);    bytesCbor10_10   = out.toByteArray();
+                out.reset(); JsonStream.serialize(pojoArray100_10, out);   bytesCbor100_10  = out.toByteArray();
+                out.reset(); JsonStream.serialize(pojoArray1000_10, out);  bytesCbor1000_10 = out.toByteArray();
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -165,7 +181,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionRead1_1(IapState state, Blackhole blackhole) {
         Pojo1Boolean pojo1 = (Pojo1Boolean) state.reader1.read(state.dest1_1, 0);
@@ -174,7 +190,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray10_1(IapState state, Blackhole blackhole) {
         PojoArray1Boolean pojoArray1 = (PojoArray1Boolean) state.readerArray1.read(state.dest10_1, 0);
@@ -183,7 +199,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray100_1(IapState state, Blackhole blackhole) {
         PojoArray1Boolean pojoArray1 = (PojoArray1Boolean) state.readerArray1.read(state.dest100_1, 0);
@@ -192,7 +208,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray1000_1(IapState state, Blackhole blackhole) {
         PojoArray1Boolean pojoArray1 = (PojoArray1Boolean) state.readerArray1.read(state.dest1000_1, 0);
@@ -201,7 +217,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionRead1_10(IapState state, Blackhole blackhole) {
         Pojo10Boolean pojo10 = (Pojo10Boolean) state.reader10.read(state.dest1_10, 0);
@@ -210,7 +226,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray10_10(IapState state, Blackhole blackhole) {
         PojoArray10Boolean pojoArray10 = (PojoArray10Boolean) state.readerArray10.read(state.dest10_10, 0);
@@ -219,7 +235,7 @@ public class IonBooleanReadBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray100_10(IapState state, Blackhole blackhole) {
         PojoArray10Boolean pojoArray10 = (PojoArray10Boolean) state.readerArray10.read(state.dest100_10, 0);
@@ -238,7 +254,7 @@ public class IonBooleanReadBenchmark {
 
     //JSON
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -251,7 +267,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -264,7 +280,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -277,7 +293,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -290,7 +306,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -303,7 +319,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -316,7 +332,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -329,7 +345,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1000_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -345,7 +361,7 @@ public class IonBooleanReadBenchmark {
 
     //MsgPack
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -358,7 +374,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -371,7 +387,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -384,7 +400,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -397,7 +413,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -410,7 +426,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -423,7 +439,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -453,7 +469,7 @@ public class IonBooleanReadBenchmark {
 
     //CBOR
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -466,7 +482,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -479,7 +495,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -492,7 +508,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -505,7 +521,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -518,7 +534,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -531,7 +547,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -544,7 +560,7 @@ public class IonBooleanReadBenchmark {
         }
     }
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1000_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -557,12 +573,29 @@ public class IonBooleanReadBenchmark {
         }
     }
 
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public Object jsoniterRead1000_10(JacksonState state, Blackhole blackhole) {
+        try {
+            state.jsonIterator.reset(state.bytesCbor1000_10);
+            PojoArray10Boolean pojoArray10 = state.jsonIterator.read(state.pojoArray10BooleanTypeLiteral);
+            blackhole.consume(pojoArray10);
+            return pojoArray10;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
-
-
-
-
+    public static void main(String[] args) throws IOException, RunnerException {
+        Main.main(new String[]{
+                "IonBooleanReadBenchmark",
+                "-i", "5",
+                "-wi", "5",
+                "-f", "1",
+        });
+    }
 
 
 

@@ -5,9 +5,15 @@ import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.jenkov.iap.ion.IonUtil;
 import com.jenkov.iap.ion.pojos.Pojo1Mixed;
 import com.jenkov.iap.ion.proto.TestPojo1MixedOuter;
+import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.output.EncodingMode;
+import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.TypeLiteral;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.runner.RunnerException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +23,10 @@ import java.io.IOException;
  */
 public class IonMixedWriteBenchmark {
 
+    static {
+        JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+        JsoniterAnnotationSupport.enable();
+    }
 
     @State(Scope.Thread)
     public static class IapState {
@@ -51,6 +61,8 @@ public class IonMixedWriteBenchmark {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectMapper objectMapperMsgPack = new ObjectMapper(new MessagePackFactory());
         ObjectMapper objectMapperCbor    = new ObjectMapper(new CBORFactory());
+        JsonStream   jsonStream          = new JsonStream(null, 4096);
+        TypeLiteral<Pojo1Mixed> pojo1MixedTypeLiteral = TypeLiteral.create(Pojo1Mixed.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(10 * 1024);
 
@@ -138,7 +150,7 @@ public class IonMixedWriteBenchmark {
 
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonWrite(JacksonState state, Blackhole blackhole) {
 
@@ -169,12 +181,30 @@ public class IonMixedWriteBenchmark {
 
 
 
-    @Benchmark
+//    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborWrite(JacksonState state, Blackhole blackhole) {
 
         try {
             state.objectMapperCbor.writeValue(state.out, state.pojo1Mixed);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        blackhole.consume(state.out);
+        return state.out;
+    }
+
+
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public Object jsoniterWrite(JacksonState state, Blackhole blackhole) {
+
+        try {
+            state.jsonStream.reset(state.out);
+            state.jsonStream.writeVal(state.pojo1MixedTypeLiteral, state.pojo1Mixed);
+            state.jsonStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -228,5 +258,13 @@ public class IonMixedWriteBenchmark {
     }
 
 
+    public static void main(String[] args) throws IOException, RunnerException {
+        Main.main(new String[]{
+                "IonMixedWriteBenchmark",
+                "-i", "5",
+                "-wi", "5",
+                "-f", "1",
+        });
+    }
 
 }

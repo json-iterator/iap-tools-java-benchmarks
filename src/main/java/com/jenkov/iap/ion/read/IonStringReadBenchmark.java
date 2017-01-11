@@ -4,9 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.jenkov.iap.ion.pojos.*;
 import com.jenkov.iap.ion.write.IonObjectWriter;
+import com.jsoniter.DecodingMode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.TypeLiteral;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.runner.RunnerException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,76 +22,78 @@ import java.io.IOException;
  */
 public class IonStringReadBenchmark {
 
-
+    static {
+        JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+    }
 
     @State(Scope.Thread)
     public static class IapState {
-        Pojo1String  pojo1_1  = new Pojo1String();
+        Pojo1String pojo1_1 = new Pojo1String();
         Pojo10String pojo1_10 = new Pojo10String();
 
-        PojoArray1String pojoArray10_1     = new PojoArray1String(10);
-        PojoArray1String pojoArray100_1    = new PojoArray1String(100);
-        PojoArray1String pojoArray1000_1   = new PojoArray1String(1000);
+        PojoArray1String pojoArray10_1 = new PojoArray1String(10);
+        PojoArray1String pojoArray100_1 = new PojoArray1String(100);
+        PojoArray1String pojoArray1000_1 = new PojoArray1String(1000);
 
-        PojoArray10String pojoArray10_10   = new PojoArray10String(10);
-        PojoArray10String pojoArray100_10  = new PojoArray10String(100);
+        PojoArray10String pojoArray10_10 = new PojoArray10String(10);
+        PojoArray10String pojoArray100_10 = new PojoArray10String(100);
         PojoArray10String pojoArray1000_10 = new PojoArray10String(1000);
 
-        IonObjectWriter writer1_1  = new IonObjectWriter(Pojo1String.class);
-        IonObjectWriter writerN_1  = new IonObjectWriter(PojoArray1String.class);
+        IonObjectWriter writer1_1 = new IonObjectWriter(Pojo1String.class);
+        IonObjectWriter writerN_1 = new IonObjectWriter(PojoArray1String.class);
         IonObjectWriter writer1_10 = new IonObjectWriter(Pojo10String.class);
         IonObjectWriter writerN_10 = new IonObjectWriter(PojoArray10String.class);
 
-        IonObjectReader reader1       = new IonObjectReader(Pojo1String.class);
-        IonObjectReader readerArray1  = new IonObjectReader(PojoArray1String.class);
-        IonObjectReader reader10      = new IonObjectReader(Pojo10String.class);
+        IonObjectReader reader1 = new IonObjectReader(Pojo1String.class);
+        IonObjectReader readerArray1 = new IonObjectReader(PojoArray1String.class);
+        IonObjectReader reader10 = new IonObjectReader(Pojo10String.class);
         IonObjectReader readerArray10 = new IonObjectReader(PojoArray10String.class);
 
 
-        byte[] dest1_1     = new byte[100 * 1024];
-        byte[] dest10_1    = new byte[100 * 1024];
-        byte[] dest100_1   = new byte[100 * 1024];
-        byte[] dest1000_1  = new byte[100 * 1024];
-        byte[] dest1_10    = new byte[100 * 1024];
-        byte[] dest10_10   = new byte[100 * 1024];
-        byte[] dest100_10  = new byte[100 * 1024];
+        byte[] dest1_1 = new byte[100 * 1024];
+        byte[] dest10_1 = new byte[100 * 1024];
+        byte[] dest100_1 = new byte[100 * 1024];
+        byte[] dest1000_1 = new byte[100 * 1024];
+        byte[] dest1_10 = new byte[100 * 1024];
+        byte[] dest10_10 = new byte[100 * 1024];
+        byte[] dest100_10 = new byte[100 * 1024];
         byte[] dest1000_10 = new byte[100 * 1024];
 
 
         @Setup(Level.Trial)
         public void doSetup() {
-            writer1_1.writeObject (pojo1_1        , 2, dest1_1   , 0);
-            writerN_1.writeObject (pojoArray10_1  , 2, dest10_1  , 0);
-            writerN_1.writeObject (pojoArray100_1 , 2, dest100_1 , 0);
-            writerN_1.writeObject (pojoArray1000_1, 2, dest1000_1, 0);
+            writer1_1.writeObject(pojo1_1, 2, dest1_1, 0);
+            writerN_1.writeObject(pojoArray10_1, 2, dest10_1, 0);
+            writerN_1.writeObject(pojoArray100_1, 2, dest100_1, 0);
+            writerN_1.writeObject(pojoArray1000_1, 2, dest1000_1, 0);
 
-            writer1_10.writeObject(pojo1_10         , 2, dest1_10   , 0);
-            writerN_10.writeObject(pojoArray10_10   , 2, dest10_10  , 0);
-            writerN_10.writeObject(pojoArray100_10  , 2, dest100_10 , 0);
-            writerN_10.writeObject(pojoArray1000_10 , 3, dest1000_10, 0);
+            writer1_10.writeObject(pojo1_10, 2, dest1_10, 0);
+            writerN_10.writeObject(pojoArray10_10, 2, dest10_10, 0);
+            writerN_10.writeObject(pojoArray100_10, 2, dest100_10, 0);
+            writerN_10.writeObject(pojoArray1000_10, 3, dest1000_10, 0);
         }
 
 
     }
 
 
-
-
     @State(Scope.Thread)
     public static class JacksonState {
-        Pojo1String  pojo1  = new Pojo1String();
+        Pojo1String pojo1 = new Pojo1String();
         Pojo10String pojo10 = new Pojo10String();
 
-        PojoArray1String  pojoArray10_1    = new PojoArray1String(10);
-        PojoArray1String  pojoArray100_1   = new PojoArray1String(100);
-        PojoArray1String  pojoArray1000_1  = new PojoArray1String(1000);
-        PojoArray10String pojoArray10_10   = new PojoArray10String(10);
-        PojoArray10String pojoArray100_10  = new PojoArray10String(100);
+        PojoArray1String pojoArray10_1 = new PojoArray1String(10);
+        PojoArray1String pojoArray100_1 = new PojoArray1String(100);
+        PojoArray1String pojoArray1000_1 = new PojoArray1String(1000);
+        PojoArray10String pojoArray10_10 = new PojoArray10String(10);
+        PojoArray10String pojoArray100_10 = new PojoArray10String(100);
         PojoArray10String pojoArray1000_10 = new PojoArray10String(1000);
 
-        ObjectMapper objectMapper        = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         ObjectMapper objectMapperMsgPack = new ObjectMapper(new MessagePackFactory());
-        ObjectMapper objectMapperCbor    = new ObjectMapper(new CBORFactory());
+        ObjectMapper objectMapperCbor = new ObjectMapper(new CBORFactory());
+        JsonIterator jsonIterator     = new JsonIterator();
+        TypeLiteral<PojoArray10String> pojoArray10StringTypeLiteral = TypeLiteral.create(PojoArray10String.class);
 
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(10 * 1024);
@@ -95,10 +103,10 @@ public class IonStringReadBenchmark {
         byte[] bytesJson100_1 = null;
         byte[] bytesJson1000_1 = null;
 
-        byte[] bytesJson1_10    = null;
-        byte[] bytesJson10_10    = null;
-        byte[] bytesJson100_10    = null;
-        byte[] bytesJson1000_10    = null;
+        byte[] bytesJson1_10 = null;
+        byte[] bytesJson10_10 = null;
+        byte[] bytesJson100_10 = null;
+        byte[] bytesJson1000_10 = null;
 
 
         byte[] bytesMsgPack1_1 = null;
@@ -106,10 +114,10 @@ public class IonStringReadBenchmark {
         byte[] bytesMsgPack100_1 = null;
         byte[] bytesMsgPack1000_1 = null;
 
-        byte[] bytesMsgPack1_10    = null;
-        byte[] bytesMsgPack10_10    = null;
-        byte[] bytesMsgPack100_10    = null;
-        byte[] bytesMsgPack1000_10    = null;
+        byte[] bytesMsgPack1_10 = null;
+        byte[] bytesMsgPack10_10 = null;
+        byte[] bytesMsgPack100_10 = null;
+        byte[] bytesMsgPack1000_10 = null;
 
 
         byte[] bytesCbor1_1 = null;
@@ -117,44 +125,96 @@ public class IonStringReadBenchmark {
         byte[] bytesCbor100_1 = null;
         byte[] bytesCbor1000_1 = null;
 
-        byte[] bytesCbor1_10    = null;
-        byte[] bytesCbor10_10    = null;
-        byte[] bytesCbor100_10    = null;
-        byte[] bytesCbor1000_10    = null;
+        byte[] bytesCbor1_10 = null;
+        byte[] bytesCbor10_10 = null;
+        byte[] bytesCbor100_10 = null;
+        byte[] bytesCbor1000_10 = null;
 
 
         @Setup(Level.Trial)
         public void doSetupOnce() {
             try {
-                out.reset(); objectMapper.writeValue(out, pojo1);            bytesJson1_1    = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray10_1);    bytesJson10_1   = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray100_1);   bytesJson100_1  = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray1000_1);  bytesJson1000_1 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojo1);
+                bytesJson1_1 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray10_1);
+                bytesJson10_1 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray100_1);
+                bytesJson100_1 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray1000_1);
+                bytesJson1000_1 = out.toByteArray();
 
-                out.reset(); objectMapper.writeValue(out, pojo10);            bytesJson1_10    = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray10_10);    bytesJson10_10   = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray100_10);   bytesJson100_10  = out.toByteArray();
-                out.reset(); objectMapper.writeValue(out, pojoArray1000_10);  bytesJson1000_10 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojo10);
+                bytesJson1_10 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray10_10);
+                bytesJson10_10 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray100_10);
+                bytesJson100_10 = out.toByteArray();
+                out.reset();
+                objectMapper.writeValue(out, pojoArray1000_10);
+                bytesJson1000_10 = out.toByteArray();
 
-                out.reset(); objectMapperMsgPack.writeValue(out, pojo1);            bytesMsgPack1_1    = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray10_1);    bytesMsgPack10_1   = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray100_1);   bytesMsgPack100_1  = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray1000_1);  bytesMsgPack1000_1 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojo1);
+                bytesMsgPack1_1 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray10_1);
+                bytesMsgPack10_1 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray100_1);
+                bytesMsgPack100_1 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray1000_1);
+                bytesMsgPack1000_1 = out.toByteArray();
 
-                out.reset(); objectMapperMsgPack.writeValue(out, pojo10);            bytesMsgPack1_10    = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray10_10);    bytesMsgPack10_10   = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray100_10);   bytesMsgPack100_10  = out.toByteArray();
-                out.reset(); objectMapperMsgPack.writeValue(out, pojoArray1000_10);  bytesMsgPack1000_10 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojo10);
+                bytesMsgPack1_10 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray10_10);
+                bytesMsgPack10_10 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray100_10);
+                bytesMsgPack100_10 = out.toByteArray();
+                out.reset();
+                objectMapperMsgPack.writeValue(out, pojoArray1000_10);
+                bytesMsgPack1000_10 = out.toByteArray();
 
-                out.reset(); objectMapperCbor.writeValue(out, pojo1);             bytesCbor1_1    = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray10_1);     bytesCbor10_1   = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray100_1);    bytesCbor100_1  = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray1000_1);   bytesCbor1000_1 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojo1);
+                bytesCbor1_1 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray10_1);
+                bytesCbor10_1 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray100_1);
+                bytesCbor100_1 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray1000_1);
+                bytesCbor1000_1 = out.toByteArray();
 
-                out.reset(); objectMapperCbor.writeValue(out, pojo10);            bytesCbor1_10    = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray10_10);    bytesCbor10_10   = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray100_10);   bytesCbor100_10  = out.toByteArray();
-                out.reset(); objectMapperCbor.writeValue(out, pojoArray1000_10);  bytesCbor1000_10 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojo10);
+                bytesCbor1_10 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray10_10);
+                bytesCbor10_10 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray100_10);
+                bytesCbor100_10 = out.toByteArray();
+                out.reset();
+                objectMapperCbor.writeValue(out, pojoArray1000_10);
+                bytesCbor1000_10 = out.toByteArray();
+
+                out.reset();
+                JsonStream.serialize(pojoArray1000_10, out);
+                bytesCbor1000_10 = out.toByteArray();
 
 
             } catch (IOException e) {
@@ -166,7 +226,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionRead1_1(IapState state, Blackhole blackhole) {
         Pojo1String pojo1 = (Pojo1String) state.reader1.read(state.dest1_1, 0);
@@ -175,7 +235,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray10_1(IapState state, Blackhole blackhole) {
         PojoArray1String pojoArray1 = (PojoArray1String) state.readerArray1.read(state.dest10_1, 0);
@@ -184,7 +244,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray100_1(IapState state, Blackhole blackhole) {
         PojoArray1String pojoArray1 = (PojoArray1String) state.readerArray1.read(state.dest100_1, 0);
@@ -193,7 +253,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray1000_1(IapState state, Blackhole blackhole) {
         PojoArray1String pojoArray1 = (PojoArray1String) state.readerArray1.read(state.dest1000_1, 0);
@@ -202,7 +262,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionRead1_10(IapState state, Blackhole blackhole) {
         Pojo10String pojo10 = (Pojo10String) state.reader10.read(state.dest1_10, 0);
@@ -211,7 +271,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray10_10(IapState state, Blackhole blackhole) {
         PojoArray10String pojoArray10 = (PojoArray10String) state.readerArray10.read(state.dest10_10, 0);
@@ -220,7 +280,7 @@ public class IonStringReadBenchmark {
     }
 
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object ionReadArray100_10(IapState state, Blackhole blackhole) {
         PojoArray10String pojoArray10 = (PojoArray10String) state.readerArray10.read(state.dest100_10, 0);
@@ -239,7 +299,7 @@ public class IonStringReadBenchmark {
 
     //JSON
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -252,7 +312,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -265,7 +325,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -278,7 +338,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -291,7 +351,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -304,7 +364,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -317,7 +377,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -330,7 +390,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object jsonRead1000_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -346,7 +406,7 @@ public class IonStringReadBenchmark {
 
     //MsgPack
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -359,7 +419,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -372,7 +432,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -385,7 +445,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -398,7 +458,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -411,7 +471,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -424,7 +484,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object msgPackRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -451,10 +511,9 @@ public class IonStringReadBenchmark {
     }
 
 
-
     //CBOR
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -467,7 +526,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead10_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -480,7 +539,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead100_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -493,7 +552,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1000_1(JacksonState state, Blackhole blackhole) {
         try {
@@ -506,7 +565,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -519,7 +578,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead10_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -532,7 +591,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead100_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -545,7 +604,7 @@ public class IonStringReadBenchmark {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public Object cborRead1000_10(JacksonState state, Blackhole blackhole) {
         try {
@@ -558,14 +617,27 @@ public class IonStringReadBenchmark {
         }
     }
 
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public Object jsoniterRead1000_10(JacksonState state, Blackhole blackhole) {
+        try {
+            state.jsonIterator.reset(state.bytesCbor1000_10);
+            PojoArray10String pojoArray10 = state.jsonIterator.read(state.pojoArray10StringTypeLiteral);
+            blackhole.consume(pojoArray10);
+            return pojoArray10;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
-
-
-
-
-
-
-
-
+    public static void main(String[] args) throws IOException, RunnerException {
+        Main.main(new String[]{
+                "IonStringReadBenchmark",
+                "-i", "5",
+                "-wi", "5",
+                "-f", "1",
+        });
+    }
 }
